@@ -1,6 +1,6 @@
-from _mysql import connection, IntegrityError
 from json import loads
 
+from django.db import connection, IntegrityError
 from django.http import JsonResponse
 
 from db_app.helper import codes
@@ -66,10 +66,7 @@ def create(request):
 
 
 def details(request):
-    try:
-        thread_id = request.GET['thread']
-    except KeyError as key_error:
-        return JsonResponse({'code': codes.INCORRECT_QUERY, 'response': 'Not found: {}'.format(str(key_error))})
+    thread_id = request.GET['thread']
     cursor = connection.cursor()
     try:
         thread, related_ids = get_thread_by_id(cursor, thread_id)
@@ -79,16 +76,12 @@ def details(request):
 
     related = request.GET.getlist('related')
     for related_ in related:
-        if related_ not in ['user', 'forum']:
-            cursor.close()
-            return JsonResponse({'code': codes.INCORRECT_QUERY, 'response': 'Incorrect related parameter'})
         if related_ is 'user':
             thread['user'] = get_profile_by_email(cursor, related_ids['user'])
         if related_ is 'forum':
             thread['forum'], related_ids_ = get_forum_by_slug(cursor, related_ids['forum'])
     cursor.close()
     return JsonResponse({'code': codes.OK, 'response': thread})
-    pass
 
 
 def list_threads(request):

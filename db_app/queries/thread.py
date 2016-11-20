@@ -1,16 +1,16 @@
 # coding=utf-8
 
-INSERT_THREAD = u'''INSERT INTO thread
-                   (forum_slug, title, isClosed, user_email, date, message, slug, isDeleted)
+INSERT_THREAD = u'''INSERT INTO Threads
+                   (forum, title, isClosed, user, date, message, slug, isDeleted)
                    VALUES
                    (%s, %s, %s, %s, %s, %s, %s, %s) ;
                 '''
 
-SELECT_THREAD_DATA_BY_ID = u'''SELECT date, dislikes, forum_slug, id,
+SELECT_THREAD_DATA_BY_ID = u'''SELECT date, dislikes, forum, id,
                                    isClosed, isDeleted, likes, message,
                                    likes - dislikes as points, posts,
-                                   slug, title, user_email
-                            FROM thread
+                                   slug, title, user
+                            FROM Threads
                             WHERE id = %s;
                         '''
 
