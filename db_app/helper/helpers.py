@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 
+from db_app.queries.post import SELECT_POST_DATA_BY_ID
 from db_app.queries.profile import SELECT_PROFILE_DATA_BY_EMAIL, SELECT_FOLLOWERS_BY_EMAIL, SELECT_FOLLOWINGS_BY_EMAIL, \
     SELECT_SUBSCRIPTIONS_BY_EMAIL
 
@@ -36,6 +37,33 @@ def get_profile_by_email(cursor, user_email):
     if cursor.rowcount:
         result_profile["subscriptions"].extend([subscription[0] for subscription in cursor.fetchall()])
     return result_profile
+
+
+def get_post_by_id(cursor, post_id):
+    cursor.execute(SELECT_POST_DATA_BY_ID, [post_id, ])
+    post = cursor.fetchone()
+    return {
+        "date": post[0].strftime("%Y-%m-%d %H:%M:%S"),
+        "dislikes": post[1],
+        "forum": post[2],
+        "id": post[3],
+        "isApproved": post[4],
+        "isDeleted": post[5],
+        "isEdited": post[6],
+        "isHighlighted": post[7],
+        "isSpam": post[8],
+        "likes": post[9],
+        "message": post[10],
+        "parent": post[11],
+        "points": post[12],
+        "thread": post[13],
+        "user": post[14]
+        }, \
+        {
+         "forum": post[2],
+         "thread": post[13],
+         "user": post[14]
+         }
 
 
 

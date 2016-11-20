@@ -1,4 +1,6 @@
 import json
+
+from db_app.queries.post import SELECT_ALL_POSTS_BY_FORUM_UNSPECIFIED
 from db_app.queries.profile import SELECT_PROFILE_BY_EMAIL
 from django.db import connection
 from django.http import HttpResponse
@@ -7,7 +9,7 @@ from db_app.helper import codes
 from db_app.helper.helpers import error_json_response, ok_json_response, get_profile_by_email
 from django.db import connection, DatabaseError, IntegrityError
 from django.http import JsonResponse
-from db_app.queries.forum import INSERT_FORUM, SELECT_FORUM_PROFILE_BY_SLUG
+from db_app.queries.forum import INSERT_FORUM, SELECT_FORUM_PROFILE_BY_SLUG, SELECT_FORUM_ID_BY_SLUG
 from db_app.queries.profile import SELECT_PROFILE_BY_EMAIL
 
 
