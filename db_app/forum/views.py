@@ -13,19 +13,11 @@ from db_app.queries.profile import SELECT_PROFILE_BY_EMAIL
 
 @csrf_exempt
 def create(request):
-    try:
-        json_args = json.loads(request.body)
-    except ValueError as value_error:
-        return error_json_response(codes.INVALID_QUERY, value_error)
-    try:
-        name = json_args["name"]
-        short_name = json_args["short_name"]
-        user = json_args["user"]
-    except KeyError as key_error:
-        return error_json_response(codes.INCORRECT_QUERY, key_error)
-
+    json_args = json.loads(request.body)
+    name = json_args["name"]
+    short_name = json_args["short_name"]
+    user = json_args["user"]
     cursor = connection.cursor()
-
     try:
         cursor.execute(SELECT_PROFILE_BY_EMAIL, [user, ])
     except DatabaseError as db_error:
@@ -61,20 +53,9 @@ def create(request):
 
 @csrf_exempt
 def details(request):
-    if request.method != 'GET':
-        return JsonResponse({'code': codes.INVALID_QUERY, 'response': 'request method should be GET'})
     forum_slug = request.GET.get('forum')
-    if not forum_slug:
-        return JsonResponse({'code': codes.INVALID_QUERY, 'response': 'forum name not found'})
     cursor = connection.cursor()
-    try:
-        cursor.execute(SELECT_FORUM_PROFILE_BY_SLUG, [forum_slug, ])
-        if not cursor.rowcount:
-            cursor.close()
-            return JsonResponse({'code': codes.NOT_FOUND, 'response': 'forum does not exist'})
-    except DatabaseError as db_error:
-        cursor.close()
-        return JsonResponse({'code': codes.UNKNOWN, 'response': unicode(db_error)})
+    cursor.execute(SELECT_FORUM_PROFILE_BY_SLUG, [forum_slug, ])
     forum = cursor.fetchone()
     response = {'id': forum[0],
                 'name': forum[1],
@@ -82,23 +63,13 @@ def details(request):
     # optional
     related = request.GET.get('related')
     if related:
-        if related != 'user':
-            cursor.close()
-            return JsonResponse({'code': codes.INCORRECT_QUERY,
-                                 'response': 'incorrect related parameter: {}'.format(related)})
         profile_email = forum[3]
-        try:
-            profile = get_profile_by_email(cursor, profile_email)
-        except DatabaseError as db_error:
-            cursor.close()
-            return JsonResponse({'code': codes.UNKNOWN, 'response': unicode(db_error)})
+        profile = get_profile_by_email(cursor, profile_email)
         response['user'] = profile
-
     else:
         response['user'] = forum[3]
         cursor.close()
     return JsonResponse({'code': codes.OK, 'response': response})
-
 
 
 def list_posts(request):
