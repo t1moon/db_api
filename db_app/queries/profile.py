@@ -68,9 +68,9 @@ UPDATE_USER_FORUM = u'''
                     '''
 
 
-SELECT_FOLLOW_RELATIONS = u'''SELECT user.email
-                                FROM followers JOIN user ON user.email = {}_email
-                                WHERE {}_email = %s
+SELECT_FOLLOW_RELATIONS = u'''SELECT Users.email
+                                FROM Followers JOIN Users ON Users.email = {}
+                                WHERE {} = %s
                             '''
 
 
