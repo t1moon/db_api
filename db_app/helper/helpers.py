@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 
+from db_app.helper import codes
 from db_app.queries.forum import SELECT_FORUM_DATA_BY_SLUG
 from db_app.queries.post import SELECT_POST_DATA_BY_ID
 from db_app.queries.profile import SELECT_PROFILE_DATA_BY_EMAIL, SELECT_FOLLOWERS_BY_EMAIL, SELECT_FOLLOWINGS_BY_EMAIL, \
@@ -45,9 +46,11 @@ def get_profile_by_email(cursor, user_email):
     cursor.execute(SELECT_FOLLOWERS_BY_EMAIL, [user_email, ])
     if cursor.rowcount:
         result_profile["followers"].extend([follower[0] for follower in cursor.fetchall()])
+
     cursor.execute(SELECT_FOLLOWINGS_BY_EMAIL, [user_email, ])
     if cursor.rowcount:
         result_profile["following"].extend([following[0] for following in cursor.fetchall()])
+
     cursor.execute(SELECT_SUBSCRIPTIONS_BY_EMAIL, [user_email, ])
     if cursor.rowcount:
         result_profile["subscriptions"].extend([subscription[0] for subscription in cursor.fetchall()])

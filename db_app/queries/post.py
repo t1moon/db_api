@@ -9,44 +9,44 @@ SELECT_ALL_POSTS_BY_FORUM_UNSPECIFIED = u'''
 
 
 SELECT_ALL_POSTS_BY_USER_EMAIL_UNSPECIFIED = u'''
-                                SELECT date, dislikes, forum_slug,
+                                SELECT date, dislikes, forum,
                                       id, isApproved, isDeleted, isEdited,
-                                      isHighlighted, isSpam, likes, message, parent_id,
-                                      likes - dislikes as points, thread_id, user_email
-                                FROM post
-                                WHERE user_email = %s
+                                      isHighlighted, isSpam, likes, message, parent,
+                                      likes - dislikes as points, thread, user
+                                FROM Posts
+                                WHERE user = %s
                                 '''
 
 SELECT_POSTS_BY_FORUM_OR_THREAD_UNSPECIFIED = u'''
-                                    SELECT date, dislikes, forum_slug, id,
+                                    SELECT date, dislikes, forum, id,
                                             isApproved, isDeleted, isEdited, isHighlighted,
-                                            isSpam, likes, message, parent_id,
-                                            likes - dislikes as points, thread_id, user_email
-                                    FROM post WHERE {} = %s
+                                            isSpam, likes, message, parent,
+                                            likes - dislikes as points, thread, user
+                                    FROM Posts WHERE {} = %s
                                   '''
 
 
-INSERT_POST = u'''INSERT INTO post
-                  (hierarchy_id, date, message, user_email, forum_slug, thread_id, parent_id)
+INSERT_POST = u'''INSERT INTO Posts
+                  (hierarchy_id, date, message, user, forum, thread, parent)
                   VALUES
                   (%s, %s, %s, %s, %s, %s, %s);
                '''
 
 
-SELECT_POST_DATA_BY_ID = u''' SELECT date, dislikes, forum_slug, id,
+SELECT_POST_DATA_BY_ID = u''' SELECT date, dislikes, forum, id,
                                     isApproved, isDeleted, isEdited, isHighlighted,
-                                    isSpam, likes, message, parent_id,
-                                    likes - dislikes as points, thread_id, user_email
-                             FROM post
+                                    isSpam, likes, message, parent,
+                                    likes - dislikes as points, thread, user
+                             FROM Posts
                              WHERE id = %s;
                         '''
 
 SELECT_DELETED_FLAG_BY_ID = u'''
-                                SELECT isDeleted FROM post
+                                SELECT isDeleted FROM Posts
                                 WHERE id = %s
                             '''
 
-SELECT_PARENT_POST_HIERARCHY = u'''SELECT id, child_posts_count, hierarchy_id FROM post
+SELECT_PARENT_POST_HIERARCHY = u'''SELECT id, child_posts_count, hierarchy_id FROM Posts
                                   WHERE id = %s;
                                '''
 

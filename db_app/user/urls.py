@@ -4,7 +4,7 @@ from views import create, details, follow, list_followers, list_followings, list
 urlpatterns = [
     url(r'^create/', create),
     url(r'^details/', details),
-    url(r'^follow/', follow),
+    url(r'(follow|unfollow)/', follow),
     url(r'^listFollowers/', list_followers),
     url(r'^listFollowing/', list_followings),
     url(r'^listPosts/', list_posts),

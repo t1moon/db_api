@@ -6,7 +6,7 @@ from django.views.decorators.http import require_POST, require_GET
 from django.db import connection, DatabaseError, IntegrityError
 
 from db_app.helper.helpers import get_profile_by_email
-from db_app.queries.profile import INSERT_PROFILE, SELECT_PROFILE_BY_EMAIL
+from db_app.queries.profile import INSERT_PROFILE, SELECT_PROFILE_BY_EMAIL, INSERT_FOLLOWER, DELETE_FOLLOWER
 from db_app.helper import codes
 # Create your views here.
 
@@ -56,8 +56,65 @@ def details(request):
     return JsonResponse({'code': codes.OK, 'response': profile})
 
 
-def follow(request):
-    pass
+def follow(request, url):
+    # params = loads(request.body)
+    # follower = params["follower"]
+    # followee = params["followee"]
+    #
+    # cursor = connection.cursor()
+    # cursor.execute(INSERT_FOLLOWER, [follower, followee, ])
+    # profile = get_profile_by_email(cursor, follower)
+    # cursor.close()
+    # return JsonResponse({'code': codes.OK, 'response': profile})
+    try:
+        params = loads(request.body)
+    except ValueError as value_err:
+        return JsonResponse({'code': codes.INVALID_QUERY, 'response': str(value_err)})
+
+    try:
+        follower = unicode(params['follower'])
+        followee = unicode(params['followee'])
+    except KeyError as key_error:
+        return JsonResponse({'code': codes.INCORRECT_QUERY, 'response': 'Not found: {}'.format(str(key_error))})
+
+    cursor = connection.cursor()
+    user_emails = []
+    try:
+        cursor.execute(SELECT_PROFILE_BY_EMAIL, [follower, ])
+        user_emails.append(follower)
+        cursor.execute(SELECT_PROFILE_BY_EMAIL, [followee, ])
+        user_emails.append(followee)
+    except DatabaseError as db_err:
+        cursor.close()
+        return JsonResponse({'code': codes.UNKNOWN, 'response': unicode(db_err)})
+
+    if len(user_emails) != 2:
+        cursor.close()
+        return JsonResponse({'code': codes.NOT_FOUND, 'response': 'User not found'})
+    if url == 'follow':
+        try:
+            cursor.execute(INSERT_FOLLOWER, [user_emails[0], user_emails[1], ])
+        except IntegrityError:
+            pass
+        except DatabaseError as db_error:
+            cursor.close()
+            return JsonResponse({'code': codes.UNKNOWN, 'response': unicode(db_error)})
+    else:
+        try:
+            cursor.execute(DELETE_FOLLOWER, [user_emails[0], user_emails[1], ])
+        except IntegrityError:
+            pass
+        except DatabaseError as db_error:
+            cursor.close()
+            return JsonResponse({'code': codes.UNKNOWN, 'response': unicode(db_error)})
+
+    try:
+        profile = get_profile_by_email(cursor, user_emails[0])
+    except DatabaseError as db_error:
+        cursor.close()
+        return JsonResponse({'code': codes.UNKNOWN, 'response': unicode(db_error)})
+    cursor.close()
+    return JsonResponse({'code': codes.OK, 'response': profile})
 
 
 def list_followers(request):
