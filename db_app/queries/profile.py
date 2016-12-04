@@ -61,11 +61,11 @@ UPDATE_PROFILE = u'''
                 WHERE email = %s ;
               '''
 
-UPDATE_USER_FORUM = u'''
-                        UPDATE user_forum
-                        SET user_name = %s
-                        WHERE user_email = %s ;
-                    '''
+# UPDATE_USER_FORUM = u'''
+#                         UPDATE user_forum
+#                         SET user_name = %s
+#                         WHERE user_email = %s ;
+#                     '''
 
 
 SELECT_FOLLOW_RELATIONS = u'''SELECT Users.email
@@ -80,11 +80,11 @@ SELECT_ALL_PROFILES_BY_FORUM_UNSPECIFIED = u'''
                                                 WHERE short_name = %s
                                             '''
 
-INSERT_USER_FORUM = u'''
-                        INSERT INTO user_forum
-                        (short_name, user_email, user_name, user_id)
-                        VALUES (%s, %s, %s, %s);
-                    '''
+# INSERT_USER_FORUM = u'''
+#                         INSERT INTO user_forum
+#                         (short_name, user_email, user_name, user_id)
+#                         VALUES (%s, %s, %s, %s);
+#                     '''
 
 '''SELECT DISTINCT user_forum.user_email  FROM user_forum
 INNER JOIN user ON user.email = user_forum.user_email

@@ -7,7 +7,7 @@ from django.db import connection, DatabaseError, IntegrityError
 
 from db_app.helper.helpers import get_profile_by_email
 from db_app.queries.profile import INSERT_PROFILE, SELECT_PROFILE_BY_EMAIL, INSERT_FOLLOWER, DELETE_FOLLOWER, \
-    SELECT_FOLLOW_RELATIONS
+    SELECT_FOLLOW_RELATIONS, UPDATE_PROFILE
 from db_app.helper import codes
 
 
@@ -56,6 +56,7 @@ def details(request):
         return JsonResponse({'code': codes.NOT_FOUND, 'response': 'user not found'})
     profile = get_profile_by_email(cursor, email)
     cursor.close()
+    print profile
     return JsonResponse({'code': codes.OK, 'response': profile})
 
 
@@ -222,4 +223,41 @@ def unfollow(request):
 
 
 def update_profile(request):
-    pass
+    try:
+        params = loads(request.body)
+    except ValueError as value_error:
+        return JsonResponse({'code': codes.INVALID_QUERY, 'response': str(value_error)})
+
+    try:
+        about = params['about']
+        name = params['name']
+        email = params['user']
+    except KeyError as key_error:
+        return JsonResponse({'code': codes.INCORRECT_QUERY, 'response': 'Not found: {}'.format(str(key_error))})
+    cursor = connection.cursor()
+    try:
+        cursor.execute(SELECT_PROFILE_BY_EMAIL, [email, ])
+    except DatabaseError as db_error:
+        cursor.close()
+        return JsonResponse({'code': codes.UNKNOWN, 'response': str(db_error)})
+    if cursor.rowcount == 0:
+        return JsonResponse({'code': codes.NOT_FOUND, 'response': 'user does not exist'})
+
+    try:
+        cursor.execute(UPDATE_PROFILE, [about, name, email])
+    except DatabaseError as db_error:
+        cursor.close()
+        return JsonResponse({'code': codes.UNKNOWN, 'response': str(db_error)})
+    # try:
+    #     cursor.execute(UPDATE_USER_FORUM, [name, email])
+    # except DatabaseError as db_error:
+    #     cursor.close()
+    #     return JsonResponse({'code': codes.UNKNOWN, 'response': str(db_error)})
+
+    try:
+        profile = get_profile_by_email(cursor, email)
+    except DatabaseError as db_error:
+        cursor.close()
+        return JsonResponse({'code': codes.UNKNOWN, 'response': unicode(db_error)})
+    cursor.close()
+    return JsonResponse({'code': codes.OK, 'response': profile})

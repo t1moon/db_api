@@ -6,7 +6,6 @@ urlpatterns = [
     url(r'^details/', details),
     url(r'^follow/', follow),
     url(r'^list(Followers|Following)/', list_followers),
-    url(r'^listFollowing/', list_followings),
     url(r'^listPosts/', list_posts),
     url(r'^unfollow/', unfollow),
     url(r'^updateProfile/', update_profile),

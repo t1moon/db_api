@@ -15,7 +15,7 @@ SELECT_THREAD_DATA_BY_ID = u'''SELECT date, dislikes, forum, id,
                         '''
 
 SELECT_THREAD_BY_ID = u'''SELECT id
-                            FROM thread
+                            FROM Threads
                             WHERE id = %s ;
                         '''
 
@@ -69,19 +69,19 @@ UPDATE_THREAD = u'''UPDATE thread
                  '''
 
 UPDATE_THREAD_VOTES = u'''
-                        UPDATE thread
+                        UPDATE Threads
                         SET {} = {} + 1
                         WHERE id = %s ;
                         '''
 
 
 INSERT_SUBSCRIPTION = u'''
-                        INSERT INTO subscriptions
-                        (thread_id, user_email)
+                        INSERT INTO Subscriptions
+                        (thread, user)
                         VALUES (%s, %s) ;
                     '''
 
 DELETE_SUBSCRIPTION = u'''
-                        DELETE FROM subscriptions
-                        WHERE thread_id = %s AND user_email = %s ;
+                        DELETE FROM Subscriptions
+                        WHERE thread = %s AND user = %s ;
                     '''

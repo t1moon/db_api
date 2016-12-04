@@ -1,13 +1,14 @@
 from json import loads
 
-from django.db import connection, IntegrityError
+from django.db import connection, IntegrityError, DatabaseError
 from django.http import JsonResponse
 
 from db_app.helper import codes
 from db_app.helper.helpers import get_profile_by_email, get_thread_by_id, get_forum_by_slug
 from db_app.queries.forum import SELECT_FORUM_ID_BY_SLUG
 from db_app.queries.profile import SELECT_PROFILE_BY_EMAIL
-from db_app.queries.thread import INSERT_THREAD
+from db_app.queries.thread import INSERT_THREAD, SELECT_THREAD_BY_ID, INSERT_SUBSCRIPTION, DELETE_SUBSCRIPTION, \
+    UPDATE_THREAD_VOTES
 
 
 def close_thread(request):
@@ -101,16 +102,60 @@ def update(request):
 
 
 def vote(request):
-    pass
+    json_request = loads(request.body)
+    vote = int(json_request['vote'])
+    thread = json_request['thread']
+    if vote == 1:
+        column = 'likes'
+    else:
+        column = 'dislikes'
+
+    cursor = connection.cursor()
+    cursor.execute(UPDATE_THREAD_VOTES.format(column, column), [thread, ])
+    thread_obj, related_obj = get_thread_by_id(cursor, thread)
+    cursor.close()
+    return JsonResponse({'code': codes.OK, 'response': thread_obj})
+
 
 
 def list_posts(request):
     pass
 
-
 def subscribe(request):
-    pass
+    json_request = loads(request.body)
+    email = json_request['user']
+    thread = json_request['thread']
+    cursor = connection.cursor()
+    try:
+        cursor.execute(SELECT_PROFILE_BY_EMAIL, [email, ])
+    except DatabaseError as db_err:
+        cursor.close()
+        return JsonResponse({'code': codes.UNKNOWN, 'response': unicode(db_err)})
+    if cursor.rowcount == 0:
+        cursor.close()
+        return JsonResponse({'code': codes.NOT_FOUND, 'response': 'user with not found'})
+     # add sub
+    query = INSERT_SUBSCRIPTION
+    cursor.execute(query, [thread, email])
+    cursor.close()
+    return JsonResponse({'code': codes.OK, 'response': {'thread': thread, 'user': email}})
 
 
 def unsubscribe(request):
-    pass
+    json_request = loads(request.body)
+    email = json_request['user']
+    thread = json_request['thread']
+    cursor = connection.cursor()
+    try:
+        cursor.execute(SELECT_PROFILE_BY_EMAIL, [email, ])
+    except DatabaseError as db_err:
+        cursor.close()
+        return JsonResponse({'code': codes.UNKNOWN, 'response': unicode(db_err)})
+    if cursor.rowcount == 0:
+        cursor.close()
+        return JsonResponse({'code': codes.NOT_FOUND, 'response': 'user with not found'})
+    #delete sub
+    query = DELETE_SUBSCRIPTION
+    cursor.execute(query, [thread, email])
+    cursor.close()
+    return JsonResponse({'code': codes.OK, 'response': {'thread': thread, 'user': email}})
