@@ -28,7 +28,7 @@ SELECT_ALL_THREADS_BY_FORUM_UNSPECIFIED = u'''SELECT date, dislikes, forum_slug,
                                             WHERE forum_slug = %s
                                             '''
 
-UPDATE_THREAD_POSTS = u'''UPDATE thread
+UPDATE_THREAD_POSTS = u'''UPDATE Threads
                          SET posts = posts + %s
                          WHERE id = %s
                       '''
