@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from db_app.helper import codes
 from db_app.helper.helpers import get_post_by_id, get_profile_by_email, get_thread_by_id, get_forum_by_slug
 from db_app.queries.forum import SELECT_FORUM_ID_BY_SLUG
-from db_app.queries.post import INSERT_POST
+from db_app.queries.post import INSERT_POST, SELECT_POST_BY_ID, UPDATE_POST_VOTES
 from db_app.queries.profile import SELECT_PROFILE_NAME_ID_BY_EMAIL
 from db_app.queries.thread import SELECT_THREAD_BY_ID, UPDATE_THREAD_POSTS
 
@@ -85,5 +85,18 @@ def update(request):
 
 
 def vote(request):
-    pass
-
+    json_request = loads(request.body)
+    post_id = json_request('post')
+    vote = json_request('vote')
+    vote = int(vote)
+    if vote == 1:
+        column = 'likes'
+    else:
+        column = 'dislikes'
+    cursor = connection.cursor()
+    cursor.execute(SELECT_POST_BY_ID, [post_id])
+    post_id = cursor.fetchone()[0]
+    cursor.execute(UPDATE_POST_VOTES.format(column, column), [post_id, ])
+    post, related_ = get_post_by_id(cursor, post_id)
+    cursor.close()
+    return JsonResponse({'code': codes.OK, 'response': post})

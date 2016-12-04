@@ -77,7 +77,7 @@ UPDATE_POST_DELETE_FLAG = u'''UPDATE post
                                '''
 
 SELECT_POST_BY_ID = u'''
-                        SELECT id FROM post
+                        SELECT id FROM Posts
                         WHERE id = %s ;
                     '''
 
@@ -87,7 +87,7 @@ UPDATE_POST_MESSAGE_BY_ID = u'''
                             WHERE id = %s
                             '''
 
-UPDATE_POST_VOTES = u'''UPDATE post
+UPDATE_POST_VOTES = u'''UPDATE Posts
                        SET {} = {} + 1
                        WHERE id= %s
                     '''
