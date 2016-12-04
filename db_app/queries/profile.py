@@ -61,11 +61,11 @@ UPDATE_PROFILE = u'''
                 WHERE email = %s ;
               '''
 
-# UPDATE_USER_FORUM = u'''
-#                         UPDATE user_forum
-#                         SET user_name = %s
-#                         WHERE user_email = %s ;
-#                     '''
+UPDATE_USER_FORUM = u'''
+                        UPDATE Users_Forum
+                        SET user = %s, user_name = %s
+                        WHERE user = %s ;
+                    '''
 
 
 SELECT_FOLLOW_RELATIONS = u'''SELECT Users.email
@@ -73,17 +73,26 @@ SELECT_FOLLOW_RELATIONS = u'''SELECT Users.email
                                 WHERE {} = %s
                             '''
 
+SELECT_PROFILES_BY_FORUM_UNSPECIFIED = u'''SELECT (username, about, name, email, isAnonymous)
+                                            FROM Users
+                                            WHERE forum = %s
+                            '''
 
-SELECT_ALL_PROFILES_BY_FORUM_UNSPECIFIED = u'''
-                                                SELECT user_email
-                                                FROM user_forum
-                                                WHERE short_name = %s
+SELECT_ALL_PROFILES_BY_FORUM_UNSPECIFIED = u'''SELECT user, user_name, user_id
+                                                FROM Users_Forum
+                                                WHERE forum = %s
                                             '''
 
-# INSERT_USER_FORUM = u'''
-#                         INSERT INTO user_forum
-#                         (short_name, user_email, user_name, user_id)
-#                         VALUES (%s, %s, %s, %s);
+INSERT_USER_FORUM = u'''INSERT INTO Users_Forum
+                        (user, forum, user_name, user_id)
+                        VALUES (%s, %s, %s, %s);
+                    '''
+
+# SELECT_USER_FOR_FORUM = u'''SELECT name
+#                             FROM Users
+#                             JOIN Forums
+#                             ON Forums.user = Users.email
+#                             WHERE Forums.user = %s
 #                     '''
 
 '''SELECT DISTINCT user_forum.user_email  FROM user_forum

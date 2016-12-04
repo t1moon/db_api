@@ -8,7 +8,7 @@ from django.db import connection, DatabaseError, IntegrityError
 from db_app.helper.helpers import get_profile_by_email
 from db_app.queries.post import SELECT_ALL_POSTS_BY_USER_EMAIL_UNSPECIFIED
 from db_app.queries.profile import INSERT_PROFILE, SELECT_PROFILE_BY_EMAIL, INSERT_FOLLOWER, DELETE_FOLLOWER, \
-    SELECT_FOLLOW_RELATIONS, UPDATE_PROFILE
+    SELECT_FOLLOW_RELATIONS, UPDATE_PROFILE, UPDATE_USER_FORUM
 from db_app.helper import codes
 
 
@@ -57,7 +57,6 @@ def details(request):
         return JsonResponse({'code': codes.NOT_FOUND, 'response': 'user not found'})
     profile = get_profile_by_email(cursor, email)
     cursor.close()
-    print profile
     return JsonResponse({'code': codes.OK, 'response': profile})
 
 
@@ -102,7 +101,6 @@ def follow(request):
         cursor.close()
         return JsonResponse({'code': codes.UNKNOWN, 'response': unicode(db_error)})
     cursor.close()
-    print profile
     return JsonResponse({'code': codes.OK, 'response': profile})
 
 
@@ -201,7 +199,6 @@ def list_posts(request):
         limit = int(limit)
         get_post_list_specified_query += ''' LIMIT %s'''
         query_params.append(limit)
-    print query_params
     cursor.execute(get_post_list_specified_query, query_params)
 
     posts = []
@@ -267,7 +264,6 @@ def unfollow(request):
         cursor.close()
         return JsonResponse({'code': codes.UNKNOWN, 'response': unicode(db_error)})
     cursor.close()
-    print profile
     return JsonResponse({'code': codes.OK, 'response': profile})
 
 
@@ -297,11 +293,7 @@ def update_profile(request):
     except DatabaseError as db_error:
         cursor.close()
         return JsonResponse({'code': codes.UNKNOWN, 'response': str(db_error)})
-    # try:
-    #     cursor.execute(UPDATE_USER_FORUM, [name, email])
-    # except DatabaseError as db_error:
-    #     cursor.close()
-    #     return JsonResponse({'code': codes.UNKNOWN, 'response': str(db_error)})
+    cursor.execute(UPDATE_USER_FORUM, [email, name, email])
 
     try:
         profile = get_profile_by_email(cursor, email)

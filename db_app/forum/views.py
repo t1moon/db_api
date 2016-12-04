@@ -1,7 +1,8 @@
 import json
 
 from db_app.queries.post import SELECT_ALL_POSTS_BY_FORUM_UNSPECIFIED
-from db_app.queries.profile import SELECT_PROFILE_BY_EMAIL
+from db_app.queries.profile import SELECT_PROFILE_BY_EMAIL, SELECT_PROFILES_BY_FORUM_UNSPECIFIED, \
+    SELECT_ALL_PROFILES_BY_FORUM_UNSPECIFIED, INSERT_USER_FORUM, SELECT_PROFILE_NAME_ID_BY_EMAIL
 from django.db import connection
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -31,25 +32,25 @@ def create(request):
         cursor.close()
         return error_json_response(codes.NOT_FOUND, 'User does not exist')
     try:
-        cursor.execute(INSERT_FORUM, [name, short_name, user])  #
+        cursor.execute(INSERT_FORUM, [name, short_name, user])
         forum_id = cursor.lastrowid
         cursor.close()
         return ok_json_response(codes.OK, {
-                                        'id': forum_id,
-                                        'name': name,
-                                        'short_name': short_name,
-                                        'user': user
-                                         })
+            'id': forum_id,
+            'name': name,
+            'short_name': short_name,
+            'user': user
+        })
     except IntegrityError:
         cursor.execute(SELECT_FORUM_PROFILE_BY_SLUG, [short_name, ])
         existed_forum = cursor.fetchone()
         cursor.close()
         return JsonResponse({'code': codes.OK, 'response': {
-                                        'id': existed_forum[0],
-                                        'name': existed_forum[1],
-                                        'short_name': existed_forum[2],
-                                        'user': existed_forum[3]
-                                         }})
+            'id': existed_forum[0],
+            'name': existed_forum[1],
+            'short_name': existed_forum[2],
+            'user': existed_forum[3]
+        }})
     except DatabaseError as db_error:
         cursor.close()
         return error_json_response(codes.UNKNOWN, db_error)
@@ -102,7 +103,6 @@ def list_posts(request):
         limit = int(limit)
         get_post_list_specified_query += ''' LIMIT %s'''
         query_params.append(limit)
-    print query_params
     cursor.execute(get_post_list_specified_query, query_params)
 
     posts = []
@@ -173,7 +173,6 @@ def list_threads(request):
         limit = int(limit)
         get_thread_list_specified_query += ''' LIMIT %s'''
         query_params.append(limit)
-    print query_params
     cursor.execute(get_thread_list_specified_query, query_params)
 
     threads = []
@@ -196,11 +195,11 @@ def list_threads(request):
             "slug": thread[10],
             "title": thread[11],
             "user": thread[12]
-            })
+        })
         related_ids = {
-                        "forum": short_name,
-                        "user": thread[12]
-                       }
+            "forum": short_name,
+            "user": thread[12]
+        }
         for related_ in related:
             if related_ == 'forum':
                 get_related_info_func = related_functions_dict[related_]  # get_forum or get_thread
@@ -215,6 +214,38 @@ def list_threads(request):
     return JsonResponse({'code': codes.OK, 'response': threads})
 
 
-
 def list_users(request):
-    pass
+    short_name = request.GET.get('forum')
+
+    cursor = connection.cursor()
+    cursor.execute(SELECT_FORUM_ID_BY_SLUG, [short_name, ])
+    if cursor.rowcount == 0:
+        cursor.close()
+        return JsonResponse({'code': codes.NOT_FOUND, 'response': 'forum not found'})
+
+    query_params = [short_name, ]
+    get_forum_profiles_specified_query = SELECT_ALL_PROFILES_BY_FORUM_UNSPECIFIED
+    since_id = request.GET.get('since_id')
+
+    if since_id:
+        get_forum_profiles_specified_query += ''' AND user_id >= %s '''
+        query_params.append(since_id)
+
+    order = request.GET.get('order', 'desc')
+    if order:
+        get_forum_profiles_specified_query += ''' ORDER BY user_name ''' + order
+
+    limit = request.GET.get('limit')
+    if limit:
+        limit = int(limit)
+        get_forum_profiles_specified_query += ''' LIMIT %s'''
+        query_params.append(limit)
+
+    cursor.execute(get_forum_profiles_specified_query, query_params)
+    profiles = []
+    for profile in cursor.fetchall():
+        profiles.append(get_profile_by_email(cursor, profile[0]))
+    cursor.close()
+
+    cursor.close()
+    return JsonResponse({'code': codes.OK, 'response': profiles})

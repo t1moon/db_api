@@ -141,6 +141,7 @@ def vote(request):
 def list_posts(request):
     pass
 
+
 def subscribe(request):
     json_request = loads(request.body)
     email = json_request['user']

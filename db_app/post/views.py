@@ -1,13 +1,13 @@
 from json import loads
 
-from django.db import connection
+from django.db import connection, IntegrityError
 from django.http import JsonResponse
 
 from db_app.helper import codes
 from db_app.helper.helpers import get_post_by_id, get_profile_by_email, get_thread_by_id, get_forum_by_slug
 from db_app.queries.forum import SELECT_FORUM_ID_BY_SLUG
 from db_app.queries.post import INSERT_POST, SELECT_POST_BY_ID, UPDATE_POST_VOTES
-from db_app.queries.profile import SELECT_PROFILE_NAME_ID_BY_EMAIL
+from db_app.queries.profile import SELECT_PROFILE_NAME_ID_BY_EMAIL, INSERT_USER_FORUM
 from db_app.queries.thread import SELECT_THREAD_BY_ID, UPDATE_THREAD_POSTS
 
 
@@ -28,7 +28,6 @@ def create(request):
     name_id = cursor.fetchone()
     user_name = name_id[0]
     user_id = name_id[1]
-    cursor.execute(SELECT_FORUM_ID_BY_SLUG, [forum, ])
     cursor.execute(SELECT_THREAD_BY_ID, [thread_id, ])
     thread_id = cursor.fetchone()[0]
 
@@ -49,6 +48,11 @@ def create(request):
     post, related_ids = get_post_by_id(cursor, post_id)
     if not post['isDeleted']:
         cursor.execute(UPDATE_THREAD_POSTS, [1, thread_id])
+    try:
+        cursor.execute(INSERT_USER_FORUM, [email, forum, user_name, user_id])
+    except IntegrityError:
+        pass
+
     cursor.close()
     return JsonResponse({'code': codes.OK, 'response': post})
 
