@@ -19,13 +19,13 @@ SELECT_THREAD_BY_ID = u'''SELECT id
                             WHERE id = %s ;
                         '''
 
-SELECT_ALL_THREADS_BY_FORUM_UNSPECIFIED = u'''SELECT date, dislikes, forum_slug,
+SELECT_ALL_THREADS_BY_FORUM_UNSPECIFIED = u'''SELECT date, dislikes, forum,
                                                     id, isClosed, isDeleted,
                                                     likes, message,
                                                     likes - dislikes as points, posts,
-                                                    slug, title, user_email
-                                            FROM thread
-                                            WHERE forum_slug = %s
+                                                    slug, title, user
+                                            FROM Threads
+                                            WHERE forum = %s
                                             '''
 
 UPDATE_THREAD_POSTS = u'''UPDATE Threads
