@@ -8,15 +8,26 @@ from db_app.helper.helpers import get_profile_by_email, get_thread_by_id, get_fo
 from db_app.queries.forum import SELECT_FORUM_ID_BY_SLUG
 from db_app.queries.profile import SELECT_PROFILE_BY_EMAIL
 from db_app.queries.thread import INSERT_THREAD, SELECT_THREAD_BY_ID, INSERT_SUBSCRIPTION, DELETE_SUBSCRIPTION, \
-    UPDATE_THREAD_VOTES, UPDATE_THREAD
+    UPDATE_THREAD_VOTES, UPDATE_THREAD, UPDATE_THREAD_SET_IS_CLOSED_FLAG
 
 
 def close_thread(request):
-    pass
+    json_request = loads(request.body)
+    thread = json_request['thread']
+
+    cursor = connection.cursor()
+    cursor.execute(UPDATE_THREAD_SET_IS_CLOSED_FLAG.format("true"), [thread, ])
+    return JsonResponse({'code': codes.OK, 'response': thread})
 
 
 def open_thread(request):
-    pass
+    json_request = loads(request.body)
+    thread = json_request['thread']
+
+    cursor = connection.cursor()
+    cursor.execute(UPDATE_THREAD_SET_IS_CLOSED_FLAG.format("false"), [thread, ])
+    return JsonResponse({'code': codes.OK, 'response': thread})
+
 
 
 def create(request):

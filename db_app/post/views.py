@@ -86,8 +86,8 @@ def update(request):
 
 def vote(request):
     json_request = loads(request.body)
-    post_id = json_request('post')
-    vote = json_request('vote')
+    post_id = json_request['post']
+    vote = json_request['vote']
     vote = int(vote)
     if vote == 1:
         column = 'likes'

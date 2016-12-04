@@ -47,17 +47,17 @@ SELECT_THREADS_BY_FORUM_OR_USER = u'''SELECT date, dislikes, forum_slug,
                                      WHERE {} = %s
                                   '''
 
-UPDATE_THREAD_DELETED_FLAG = u'''UPDATE thread
+UPDATE_THREAD_DELETED_FLAG = u'''UPDATE Threads
                                 SET isDeleted = {}
                                 WHERE id = %s;
                              '''
 
-UPDATE_THREAD_POSTS_DELETED_FLAG = u'''UPDATE post
+UPDATE_THREAD_POSTS_DELETED_FLAG = u'''UPDATE Posts
                                       SET isDeleted = {}
-                                      WHERE thread_id = %s
+                                      WHERE thread = %s
                                    '''
 
-UPDATE_THREAD_SET_IS_CLOSED_FLAG = u'''UPDATE thread
+UPDATE_THREAD_SET_IS_CLOSED_FLAG = u'''UPDATE Threads
                                        SET isClosed = {}
                                        WHERE id = %s;
                                     '''
