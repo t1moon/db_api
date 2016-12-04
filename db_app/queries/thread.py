@@ -62,7 +62,7 @@ UPDATE_THREAD_SET_IS_CLOSED_FLAG = u'''UPDATE thread
                                        WHERE id = %s;
                                     '''
 
-UPDATE_THREAD = u'''UPDATE thread
+UPDATE_THREAD = u'''UPDATE Threads
                     SET message = %s,
                         slug = %s
                     WHERE id = %s;
