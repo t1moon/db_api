@@ -187,6 +187,7 @@ def list_posts(request):
     query_params = [email, ]
     get_post_list_specified_query = SELECT_ALL_POSTS_BY_USER_EMAIL_UNSPECIFIED
     since_date = request.GET.get('since')
+
     if since_date:
         get_post_list_specified_query += ''' AND date >= %s '''
         query_params.append(since_date)
@@ -194,13 +195,13 @@ def list_posts(request):
     order = request.GET.get('order', 'desc')
     if order:
         get_post_list_specified_query += ''' ORDER BY date ''' + order
-        query_params.append(order)
 
-    limit = int(request.GET.get('limit'))
+    limit = request.GET.get('limit')
+    limit = int(limit)
     if limit:
         get_post_list_specified_query += ''' LIMIT %s'''
         query_params.append(limit)
-
+    print query_params
     cursor.execute(get_post_list_specified_query, query_params)
 
     posts = []
