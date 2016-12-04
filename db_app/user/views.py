@@ -6,6 +6,7 @@ from django.views.decorators.http import require_POST, require_GET
 from django.db import connection, DatabaseError, IntegrityError
 
 from db_app.helper.helpers import get_profile_by_email
+from db_app.queries.post import SELECT_ALL_POSTS_BY_USER_EMAIL_UNSPECIFIED
 from db_app.queries.profile import INSERT_PROFILE, SELECT_PROFILE_BY_EMAIL, INSERT_FOLLOWER, DELETE_FOLLOWER, \
     SELECT_FOLLOW_RELATIONS, UPDATE_PROFILE
 from db_app.helper import codes
@@ -175,7 +176,54 @@ def list_followings(request):
 
 
 def list_posts(request):
-    pass
+    email = request.GET.get('user')
+
+    cursor = connection.cursor()
+    cursor.execute(SELECT_PROFILE_BY_EMAIL, [email, ])
+    if cursor.rowcount == 0:
+        cursor.close()
+        return JsonResponse({'code': codes.NOT_FOUND, 'response': 'user not found'})
+
+    query_params = [email, ]
+    get_post_list_specified_query = SELECT_ALL_POSTS_BY_USER_EMAIL_UNSPECIFIED
+    since_date = request.GET.get('since')
+    if since_date:
+        get_post_list_specified_query += ''' AND date >= %s '''
+        query_params.append(since_date)
+
+    order = request.GET.get('order', 'desc')
+    if order:
+        get_post_list_specified_query += ''' ORDER BY date ''' + order
+        query_params.append(order)
+
+    limit = int(request.GET.get('limit'))
+    if limit:
+        get_post_list_specified_query += ''' LIMIT %s'''
+        query_params.append(limit)
+
+    cursor.execute(get_post_list_specified_query, query_params)
+
+    posts = []
+    for post in cursor.fetchall():
+        posts.append({
+            "date": post[0].strftime("%Y-%m-%d %H:%M:%S"),
+            "dislikes": post[1],
+            "forum": post[2],
+            "id": post[3],
+            "isApproved": post[4],
+            "isDeleted": post[5],
+            "isEdited": post[6],
+            "isHighlighted": post[7],
+            "isSpam": post[8],
+            "likes": post[9],
+            "message": post[10],
+            "parent": post[11],
+            "points": post[12],
+            "thread": post[13],
+            "user": post[14]
+        })
+    cursor.close()
+    return JsonResponse({'code': codes.OK, 'response': posts})
 
 
 def unfollow(request):
