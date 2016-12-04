@@ -145,7 +145,11 @@ def subscribe(request):
         return JsonResponse({'code': codes.NOT_FOUND, 'response': 'user with not found'})
      # add sub
     query = INSERT_SUBSCRIPTION
-    cursor.execute(query, [thread, email])
+    try:
+        cursor.execute(query, [thread, email])
+    except IntegrityError:
+        cursor.close()
+        return JsonResponse({'code': codes.OK, 'response': {'thread': thread, 'user': email}})
     cursor.close()
     return JsonResponse({'code': codes.OK, 'response': {'thread': thread, 'user': email}})
 

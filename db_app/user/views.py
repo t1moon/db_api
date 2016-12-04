@@ -197,8 +197,8 @@ def list_posts(request):
         get_post_list_specified_query += ''' ORDER BY date ''' + order
 
     limit = request.GET.get('limit')
-    limit = int(limit)
     if limit:
+        limit = int(limit)
         get_post_list_specified_query += ''' LIMIT %s'''
         query_params.append(limit)
     print query_params
