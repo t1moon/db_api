@@ -6,7 +6,8 @@ from django.db import connection
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from db_app.helper import codes
-from db_app.helper.helpers import error_json_response, ok_json_response, get_profile_by_email
+from db_app.helper.helpers import error_json_response, ok_json_response, get_profile_by_email, get_thread_by_id, \
+    get_forum_by_slug
 from django.db import connection, DatabaseError, IntegrityError
 from django.http import JsonResponse
 from db_app.queries.forum import INSERT_FORUM, SELECT_FORUM_PROFILE_BY_SLUG, SELECT_FORUM_ID_BY_SLUG
@@ -75,7 +76,69 @@ def details(request):
 
 
 def list_posts(request):
-    pass
+    short_name = request.GET.get('forum')
+
+    cursor = connection.cursor()
+    cursor.execute(SELECT_FORUM_ID_BY_SLUG, [short_name, ])
+    if cursor.rowcount == 0:
+        cursor.close()
+        return JsonResponse({'code': codes.NOT_FOUND, 'response': 'forum not found'})
+
+    query_params = [short_name, ]
+    get_post_list_specified_query = SELECT_ALL_POSTS_BY_FORUM_UNSPECIFIED
+    since_date = request.GET.get('since')
+
+    if since_date:
+        get_post_list_specified_query += ''' AND date >= %s '''
+        query_params.append(since_date)
+
+    order = request.GET.get('order', 'desc')
+    if order:
+        get_post_list_specified_query += ''' ORDER BY date ''' + order
+
+    limit = request.GET.get('limit')
+    if limit:
+        limit = int(limit)
+        get_post_list_specified_query += ''' LIMIT %s'''
+        query_params.append(limit)
+    print query_params
+    cursor.execute(get_post_list_specified_query, query_params)
+
+    posts = []
+    related = set(request.GET.getlist('related'))
+    related_functions_dict = {'user': get_profile_by_email,
+                              'thread': get_thread_by_id,
+                              'forum': get_forum_by_slug
+                              }
+    for post in cursor.fetchall():
+        posts.append({
+            "date": post[0].strftime("%Y-%m-%d %H:%M:%S"),
+            "dislikes": post[1],
+            "forum": post[2],
+            "id": post[3],
+            "isApproved": post[4],
+            "isDeleted": post[5],
+            "isEdited": post[6],
+            "isHighlighted": post[7],
+            "isSpam": post[8],
+            "likes": post[9],
+            "message": post[10],
+            "parent": post[11],
+            "points": post[12],
+            "thread": post[13],
+            "user": post[14]
+        })
+        related_ids = {'forum': short_name,
+                       'thread': post[13],
+                       'user': post[14]
+                       }
+        for related_ in related:
+            if related_ in ['thread', 'forum', 'user']:
+                get_related_info_func = related_functions_dict[related_]  # get_forum or get_thread
+                # let's place on the last position
+                posts[-1][related_], related_ids_ = get_related_info_func(cursor, related_ids[related_])
+    cursor.close()
+    return JsonResponse({'code': codes.OK, 'response': posts})
 
 
 def list_threads(request):
