@@ -82,7 +82,7 @@ SELECT_POST_BY_ID = u'''
                     '''
 
 UPDATE_POST_MESSAGE_BY_ID = u'''
-                            UPDATE post
+                            UPDATE Posts
                             SET message = %s
                             WHERE id = %s
                             '''

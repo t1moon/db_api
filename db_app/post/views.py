@@ -7,7 +7,7 @@ from db_app.helper import codes
 from db_app.helper.helpers import get_post_by_id, get_profile_by_email, get_thread_by_id, get_forum_by_slug
 from db_app.queries.forum import SELECT_FORUM_ID_BY_SLUG
 from db_app.queries.post import INSERT_POST, SELECT_POST_BY_ID, UPDATE_POST_VOTES, SELECT_DELETED_FLAG_BY_ID, \
-    UPDATE_POST_DELETE_FLAG, SELECT_POSTS_BY_FORUM_OR_THREAD_UNSPECIFIED
+    UPDATE_POST_DELETE_FLAG, SELECT_POSTS_BY_FORUM_OR_THREAD_UNSPECIFIED, UPDATE_POST_MESSAGE_BY_ID
 from db_app.queries.profile import SELECT_PROFILE_NAME_ID_BY_EMAIL, INSERT_USER_FORUM
 from db_app.queries.thread import SELECT_THREAD_BY_ID, UPDATE_THREAD_POSTS, SELECT_THREAD_BY_POST_ID
 
@@ -165,7 +165,17 @@ def restore(request):
 
 
 def update(request):
-    pass
+    json_request = loads(request.body)
+    post_id = json_request['post']
+    message = unicode(json_request['message'])
+    cursor = connection.cursor()
+
+    cursor.execute(SELECT_POST_BY_ID, [post_id, ])
+    cursor.execute(UPDATE_POST_MESSAGE_BY_ID, [message, post_id])
+    post, related_obj = get_post_by_id(cursor, post_id)
+
+    cursor.close()
+    return JsonResponse({'code': codes.OK, 'response': post})
 
 
 def vote(request):
