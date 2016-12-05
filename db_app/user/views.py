@@ -293,7 +293,7 @@ def update_profile(request):
     except DatabaseError as db_error:
         cursor.close()
         return JsonResponse({'code': codes.UNKNOWN, 'response': str(db_error)})
-    cursor.execute(UPDATE_USER_FORUM, [email, name, email])
+    cursor.execute(UPDATE_USER_FORUM, [name, email])
 
     try:
         profile = get_profile_by_email(cursor, email)

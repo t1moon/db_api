@@ -71,7 +71,7 @@ SELECT_DELETED_FLAG_BY_ID = u'''
 #                         WHERE thread_id = %s;
 #                      '''
 
-UPDATE_POST_DELETE_FLAG = u'''UPDATE post
+UPDATE_POST_DELETE_FLAG = u'''UPDATE Posts
                                  SET isDeleted = {}
                                  WHERE id = %s;
                                '''

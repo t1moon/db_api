@@ -8,7 +8,8 @@ from db_app.helper.helpers import get_profile_by_email, get_thread_by_id, get_fo
 from db_app.queries.forum import SELECT_FORUM_ID_BY_SLUG
 from db_app.queries.profile import SELECT_PROFILE_BY_EMAIL
 from db_app.queries.thread import INSERT_THREAD, SELECT_THREAD_BY_ID, INSERT_SUBSCRIPTION, DELETE_SUBSCRIPTION, \
-    UPDATE_THREAD_VOTES, UPDATE_THREAD, UPDATE_THREAD_SET_IS_CLOSED_FLAG
+    UPDATE_THREAD_VOTES, UPDATE_THREAD, UPDATE_THREAD_SET_IS_CLOSED_FLAG, UPDATE_THREAD_DELETED_FLAG, \
+    UPDATE_THREAD_POSTS_DELETED_FLAG, SELECT_THREAD_BY_POST_ID, SELECT_THREAD_DELETED_FLAG_BY_ID, UPDATE_THREAD_POSTS
 
 
 def close_thread(request):
@@ -101,11 +102,35 @@ def list_threads(request):
 
 
 def remove(request):
-    pass
+    json_request = loads(request.body)
+    thread_id = json_request['thread']
+    cursor = connection.cursor()
+    cursor.execute(SELECT_THREAD_DELETED_FLAG_BY_ID, [thread_id, ])
+    already_deleted = cursor.fetchone()[0]
+    if not already_deleted:
+        cursor.execute(UPDATE_THREAD_DELETED_FLAG.format(1), [thread_id, ])
+        cursor.execute(UPDATE_THREAD_POSTS_DELETED_FLAG.format(1), [thread_id, ])
+        posts_diff = cursor.rowcount    #  how much posts I deleted
+        posts_diff = -posts_diff
+        cursor.execute(UPDATE_THREAD_POSTS, [posts_diff, thread_id])
+    cursor.close()
+    return JsonResponse({'code': codes.OK, 'response': {"thread": thread_id}})
 
 
 def restore(request):
-    pass
+    json_request = loads(request.body)
+    thread_id = json_request['thread']
+    cursor = connection.cursor()
+    cursor.execute(SELECT_THREAD_DELETED_FLAG_BY_ID, [thread_id, ])
+    already_deleted = cursor.fetchone()[0]
+    if already_deleted:
+        cursor.execute(UPDATE_THREAD_DELETED_FLAG.format(0), [thread_id, ])
+        cursor.execute(UPDATE_THREAD_POSTS_DELETED_FLAG.format(0), [thread_id, ])
+        posts_diff = cursor.rowcount    #  how much posts I deleted
+        cursor.execute(UPDATE_THREAD_POSTS, [posts_diff, thread_id])
+    cursor.close()
+    return JsonResponse({'code': codes.OK, 'response': {"thread": thread_id}})
+
 
 
 def update(request):

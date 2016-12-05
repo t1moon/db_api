@@ -63,7 +63,7 @@ UPDATE_PROFILE = u'''
 
 UPDATE_USER_FORUM = u'''
                         UPDATE Users_Forum
-                        SET user = %s, user_name = %s
+                        SET user_name = %s
                         WHERE user = %s ;
                     '''
 

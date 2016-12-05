@@ -33,8 +33,8 @@ UPDATE_THREAD_POSTS = u'''UPDATE Threads
                          WHERE id = %s
                       '''
 
-SELECT_THREAD_BY_POST_ID = u'''SELECT thread_id
-                                   FROM post
+SELECT_THREAD_BY_POST_ID = u'''SELECT thread
+                                   FROM Posts
                                    WHERE id = %s
                                 '''
 # переделать айдишник форума по slug айдишник юзера по email и оптимизировать это
@@ -46,6 +46,11 @@ SELECT_THREADS_BY_FORUM_OR_USER = u'''SELECT date, dislikes, forum_slug,
                                      FROM thread
                                      WHERE {} = %s
                                   '''
+
+SELECT_THREAD_DELETED_FLAG_BY_ID = u'''
+                                SELECT isDeleted FROM Threads
+                                WHERE id = %s
+                            '''
 
 UPDATE_THREAD_DELETED_FLAG = u'''UPDATE Threads
                                 SET isDeleted = {}
