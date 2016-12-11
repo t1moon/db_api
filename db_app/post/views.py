@@ -1,3 +1,4 @@
+from Tkconstants import SEL
 from json import loads
 
 from django.db import connection, IntegrityError
@@ -7,9 +8,29 @@ from db_app.helper import codes
 from db_app.helper.helpers import get_post_by_id, get_profile_by_email, get_thread_by_id, get_forum_by_slug
 from db_app.queries.forum import SELECT_FORUM_ID_BY_SLUG
 from db_app.queries.post import INSERT_POST, SELECT_POST_BY_ID, UPDATE_POST_VOTES, SELECT_DELETED_FLAG_BY_ID, \
-    UPDATE_POST_DELETE_FLAG, SELECT_POSTS_BY_FORUM_OR_THREAD_UNSPECIFIED, UPDATE_POST_MESSAGE_BY_ID
+    UPDATE_POST_DELETE_FLAG, SELECT_POSTS_BY_FORUM_OR_THREAD_UNSPECIFIED, UPDATE_POST_MESSAGE_BY_ID, \
+    SELECT_PARENT_POST_HIERARCHY, UPDATE_CHILD_POST_COUNT, SELECT_TOP_POST_NUMBER, INSERT_TOP_POST_NUMBER, \
+    UPDATE_POST_NUMBER
 from db_app.queries.profile import SELECT_PROFILE_NAME_ID_BY_EMAIL, INSERT_USER_FORUM
 from db_app.queries.thread import SELECT_THREAD_BY_ID, UPDATE_THREAD_POSTS, SELECT_THREAD_BY_POST_ID
+
+
+def update_hierarchy(cursor, parent_id):
+    cursor.execute(SELECT_PARENT_POST_HIERARCHY, [parent_id, ])
+    post = cursor.fetchone()
+    cursor.execute(UPDATE_CHILD_POST_COUNT, [parent_id, ])
+    return post
+
+
+def insert_to_top(cursor, thread_id):
+    cursor.execute(SELECT_TOP_POST_NUMBER, [thread_id, ])
+    if cursor.rowcount == 0:
+        cursor.execute(INSERT_TOP_POST_NUMBER, [thread_id, ])
+        post_number = 1
+    else:
+        post_number = cursor.fetchone()[0] + 1
+        cursor.execute(UPDATE_POST_NUMBER, [thread_id, ])
+    return post_number
 
 
 def create(request):
@@ -32,15 +53,24 @@ def create(request):
     cursor.execute(SELECT_THREAD_BY_ID, [thread_id, ])
     thread_id = cursor.fetchone()[0]
 
-    cursor.execute(INSERT_POST, [date, message, email, forum, thread_id])
-    post_id = cursor.lastrowid
-
     #optional args
     query_params = []
     optional_args = ['isApproved', 'isDeleted', 'isEdited', 'isHighlighted', 'isSpam', 'parent']
     for optional_arg_name in optional_args:
         optional_arg_value = json_request.get(optional_arg_name)
         query_params.append([optional_arg_name, optional_arg_value])
+
+    parent_id = json_request.get('parent')
+    if parent_id:
+        post = update_hierarchy(cursor, parent_id)
+        hierarchy_id = post[2] + unicode(post[1] + 1) + '/'
+    else:
+        post_number = insert_to_top(cursor, thread_id)
+        hierarchy_id = unicode(post_number) + '/'
+
+    #cursor.execute(INSERT_POST, [hierarchy_id, date, message, email, forum, thread_id, parent_id])
+    cursor.execute(INSERT_POST, [hierarchy_id, date, message, email, forum, thread_id, parent_id])
+    post_id = cursor.lastrowid
 
     update_post_query = u''' UPDATE Posts SET '''
     if query_params:
