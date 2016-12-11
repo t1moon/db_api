@@ -22,7 +22,7 @@ def clear(request):
     cursor = connection.cursor()
     cursor.execute(RESET_FK_CHECKS.format(0))
     for table in ['Followers', 'Subscriptions',
-                  'Posts', 'Threads', 'Forums', 'Users']:
+                  'Posts', 'Threads', 'Forums', 'Users', 'Threads_Head_Posts', 'Users_Forum']:
         cursor.execute(CLEAR_TABLE.format(table))
         cursor.execute(RESET_AUTO_INCREMENT.format(table))
     cursor.execute(RESET_FK_CHECKS.format(1))
