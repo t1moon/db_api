@@ -60,6 +60,8 @@ def create(request):
 
 def details(request):
     post_id = request.GET.get('post')
+    if int(post_id) < 0:
+        return JsonResponse({'code': codes.NOT_FOUND, 'response': 'post not found'})
     cursor = connection.cursor()
     post, related_ids = get_post_by_id(cursor, post_id)
     related = request.GET.getlist('related')

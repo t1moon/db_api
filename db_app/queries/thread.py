@@ -38,12 +38,12 @@ SELECT_THREAD_BY_POST_ID = u'''SELECT thread
                                    WHERE id = %s
                                 '''
 # переделать айдишник форума по slug айдишник юзера по email и оптимизировать это
-SELECT_THREADS_BY_FORUM_OR_USER = u'''SELECT date, dislikes, forum_slug,
+SELECT_THREADS_BY_FORUM_OR_USER = u'''SELECT date, dislikes, forum,
                                             id, isClosed, isDeleted,
                                             likes, message,
                                             likes - dislikes as points, posts,
-                                            slug, title, user_email
-                                     FROM thread
+                                            slug, title, user
+                                     FROM Threads
                                      WHERE {} = %s
                                   '''
 

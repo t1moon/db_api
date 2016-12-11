@@ -6,10 +6,12 @@ from django.http import JsonResponse
 from db_app.helper import codes
 from db_app.helper.helpers import get_profile_by_email, get_thread_by_id, get_forum_by_slug
 from db_app.queries.forum import SELECT_FORUM_ID_BY_SLUG
+from db_app.queries.post import SELECT_ALL_POSTS_BY_THREAD
 from db_app.queries.profile import SELECT_PROFILE_BY_EMAIL
 from db_app.queries.thread import INSERT_THREAD, SELECT_THREAD_BY_ID, INSERT_SUBSCRIPTION, DELETE_SUBSCRIPTION, \
     UPDATE_THREAD_VOTES, UPDATE_THREAD, UPDATE_THREAD_SET_IS_CLOSED_FLAG, UPDATE_THREAD_DELETED_FLAG, \
-    UPDATE_THREAD_POSTS_DELETED_FLAG, SELECT_THREAD_BY_POST_ID, SELECT_THREAD_DELETED_FLAG_BY_ID, UPDATE_THREAD_POSTS
+    UPDATE_THREAD_POSTS_DELETED_FLAG, SELECT_THREAD_BY_POST_ID, SELECT_THREAD_DELETED_FLAG_BY_ID, UPDATE_THREAD_POSTS, \
+    SELECT_THREADS_BY_FORUM_OR_USER
 
 
 def close_thread(request):
@@ -98,7 +100,55 @@ def details(request):
 
 
 def list_threads(request):
-    pass
+    short_name = request.GET.get('forum')
+    email = request.GET.get('user')
+    if email:
+        related_table_name = 'user'
+        related_query = SELECT_PROFILE_BY_EMAIL
+        related_params = [email, ]
+    else:
+        related_table_name = 'forum'
+        related_query = SELECT_FORUM_ID_BY_SLUG
+        related_params = [short_name, ]
+    cursor = connection.cursor()
+    cursor.execute(related_query, related_params)
+
+    query_params = [related_params[0], ]
+    get_thread_list_specified_query = SELECT_THREADS_BY_FORUM_OR_USER
+    since_date = request.GET.get('since')
+    if since_date:
+        get_thread_list_specified_query += ''' AND date >= %s '''
+        query_params.append(since_date)
+
+    order = request.GET.get('order', 'desc')
+    get_thread_list_specified_query += ''' ORDER BY date ''' + order
+
+    limit = request.GET.get('limit')
+    if limit:
+        limit = int(limit)
+        get_thread_list_specified_query += ''' LIMIT %s '''
+        query_params.append(limit)
+    cursor.execute(get_thread_list_specified_query.format(related_table_name), query_params)
+
+    threads = []
+    for thread in cursor.fetchall():
+        threads.append({
+            "date": thread[0].strftime("%Y-%m-%d %H:%M:%S"),
+            "dislikes": thread[1],
+            "forum": thread[2],
+            "id": thread[3],
+            "isClosed": thread[4],
+            "isDeleted": thread[5],
+            "likes": thread[6],
+            "message": thread[7],
+            "points": thread[8],
+            "posts": thread[9],
+            "slug": thread[10],
+            "title": thread[11],
+            "user": thread[12]
+            })
+    cursor.close()
+    return JsonResponse({'code': codes.OK, 'response': threads})
 
 
 def remove(request):
@@ -165,7 +215,84 @@ def vote(request):
 
 def list_posts(request):
     pass
+    # thread_id = request.GET.get('thread')
+    #
+    # cursor = connection.cursor()
+    #
+    # get_all_posts_specified_query = SELECT_ALL_POSTS_BY_THREAD
+    # query_params = [thread_id, ]
+    # since_date = request.GET.get('since')
+    # if since_date:
+    #     get_all_posts_specified_query += ''' AND date >= %s '''
+    #     query_params.append(since_date)
+    #
+    # order = request.GET.get('order', 'desc')
+    # sort = request.GET.get('sort', 'flat')
+    # limit = request.GET.get('limit')
+    # get_all_posts_specified_query, query_params = add_sorting_part(get_all_posts_specified_query, order, sort,
+    #                                                                    limit, query_params, thread_id, cursor)
+    #
+    # cursor.execute(get_all_posts_specified_query, query_params)
+    #
+    # posts = []
+    # for post in cursor.fetchall():
+    #     posts.append({
+    #         "date": post[0].strftime("%Y-%m-%d %H:%M:%S"),
+    #         "dislikes": post[1],
+    #         "forum": post[2],
+    #         "id": post[3],
+    #         "isApproved": post[4],
+    #         "isDeleted": post[5],
+    #         "isEdited": post[6],
+    #         "isHighlighted": post[7],
+    #         "isSpam": post[8],
+    #         "likes": post[9],
+    #         "message": post[10],
+    #         "parent": post[11],
+    #         "points": post[12],
+    #         "thread": post[13],
+    #         "user": post[14]
+    #         })
+    # cursor.close()
+    # return JsonResponse({'code': codes.OK, 'response': posts})
 
+
+# def add_sorting_part(query_prefix, order, sort, limit, query_params, thread_id, cursor):
+#     if sort == 'flat':
+#         query_prefix += u''' ORDER BY date ''' + order
+#         if limit:
+#             query_prefix += ''' LIMIT %s '''
+#             query_params.append(int(limit))
+#         return query_prefix, query_params
+#
+#     if sort == 'tree':
+#         query_prefix += u''' ORDER BY SUBSTRING_INDEX(hierarchy_id, '/', 1) ''' + order + u''' , hierarchy_id ASC '''
+#         if limit:
+#             query_prefix += ''' LIMIT %s '''
+#             query_params.append(int(limit))
+#         return query_prefix, query_params
+#
+#     if sort == 'parent_tree':
+#         query_postfix = u''' ORDER BY SUBSTRING_INDEX(hierarchy_id, '/', 1) ''' + order + u''' , hierarchy_id ASC '''
+#         if limit:
+#             if order == 'asc':
+#                 operation = '<='
+#                 limit = int(limit) + 1
+#             else:
+#                 operation = '>='
+#                 cursor.execute(SELECT_TOP_POST_NUMBER, [thread_id, ])
+#                 if cursor.rowcount == 0:
+#                     max_posts_number = 0
+#                 else:
+#                     max_posts_number = cursor.fetchone()[0]
+#                 limit = int(max_posts_number) - int(limit) + 1
+#                 if limit < 1:
+#                     limit = 1
+#             query_prefix += u''' AND hierarchy_id {} '{}' '''.format(operation, limit) + query_postfix
+#             return query_prefix, query_params
+#         else:
+#             return query_prefix + query_postfix, query_params
+#
 
 def subscribe(request):
     json_request = loads(request.body)

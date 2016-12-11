@@ -92,11 +92,11 @@ UPDATE_POST_VOTES = u'''UPDATE Posts
                        WHERE id= %s
                     '''
 
-SELECT_ALL_POSTS_BY_THREAD = u'''SELECT date, dislikes, forum_slug,
+SELECT_ALL_POSTS_BY_THREAD = u'''SELECT date, dislikes, forum,
                                       id, isApproved, isDeleted, isEdited,
-                                      isHighlighted, isSpam, likes, message, parent_id,
-                                      likes - dislikes as points, thread_id, user_email
-                                FROM post
-                                WHERE thread_id = %s
+                                      isHighlighted, isSpam, likes, message, parent,
+                                      likes - dislikes as points, thread, user
+                                FROM Posts
+                                WHERE thread = %s
                             '''
 
