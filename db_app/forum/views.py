@@ -1,10 +1,8 @@
 import json
 
 from db_app.queries.post import SELECT_ALL_POSTS_BY_FORUM_UNSPECIFIED
-from db_app.queries.profile import SELECT_PROFILE_BY_EMAIL, SELECT_PROFILES_BY_FORUM_UNSPECIFIED, \
-    SELECT_ALL_PROFILES_BY_FORUM_UNSPECIFIED, INSERT_USER_FORUM, SELECT_PROFILE_NAME_ID_BY_EMAIL
-from django.db import connection
-from django.http import HttpResponse
+from db_app.queries.profile import SELECT_ALL_PROFILES_BY_FORUM_UNSPECIFIED
+
 from django.views.decorators.csrf import csrf_exempt
 from db_app.helper import codes
 from db_app.helper.helpers import error_json_response, ok_json_response, get_profile_by_email, get_thread_by_id, \

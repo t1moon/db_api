@@ -87,17 +87,3 @@ INSERT_USER_FORUM = u'''INSERT INTO Users_Forum
                         (user, forum, user_name, user_id)
                         VALUES (%s, %s, %s, %s);
                     '''
-
-# SELECT_USER_FOR_FORUM = u'''SELECT name
-#                             FROM Users
-#                             JOIN Forums
-#                             ON Forums.user = Users.email
-#                             WHERE Forums.user = %s
-#                     '''
-
-'''SELECT DISTINCT user_forum.user_email  FROM user_forum
-INNER JOIN user ON user.email = user_forum.user_email
-WHERE user_forum.short_name = forum1 ORDER BY user.name desc;
-
-SELECT DISTINCT user_email, user_name  FROM user_forum
-WHERE short_name = 'forumwithsufficientlylargename' ORDER BY user_name desc;'''

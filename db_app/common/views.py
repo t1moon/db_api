@@ -1,15 +1,7 @@
 # coding: utf8
-from django.shortcuts import render
-from django.db import connection
-from django.http import HttpResponse, HttpRequest, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-import json
-
-from django.db import DatabaseError, IntegrityError, ProgrammingError
-from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.db import connection, DatabaseError, IntegrityError
+from django.db import connection
 
 from db_app.helper import codes
 from db_app.queries.common import CLEAR_TABLE, RESET_AUTO_INCREMENT, RESET_FK_CHECKS, SELECT_TABLE_STATUSES
@@ -38,8 +30,6 @@ def status(request):
         cursor.execute(SELECT_TABLE_STATUSES.format(entity.capitalize()))
         data = cursor.fetchone()
         statuses[entity] = data[0]
-    #
-    # for status in cursor.fetchall():
-    #     statuses[status[0]] = status[1]
+
     cursor.close()
     return JsonResponse({"code": codes.OK, "response": statuses})

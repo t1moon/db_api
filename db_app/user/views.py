@@ -2,7 +2,6 @@ import time
 from django.http import JsonResponse
 from json import loads
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST, require_GET
 from django.db import connection, DatabaseError, IntegrityError
 
 from db_app.helper.helpers import get_profile_by_email
@@ -86,15 +85,6 @@ def follow(request):
     except DatabaseError as db_error:
         cursor.close()
         return JsonResponse({'code': codes.UNKNOWN, 'response': unicode(db_error)})
-    # else:
-    #     try:
-    #         cursor.execute(DELETE_FOLLOWER, [user_emails[0], user_emails[1], ])
-    #     except IntegrityError:
-    #         pass
-    #     except DatabaseError as db_error:
-    #         cursor.close()
-    #         return JsonResponse({'code': codes.UNKNOWN, 'response': unicode(db_error)})
-
     try:
         profile = get_profile_by_email(cursor, user_emails[0])
     except DatabaseError as db_error:

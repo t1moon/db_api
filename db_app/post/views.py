@@ -68,7 +68,6 @@ def create(request):
         post_number = insert_to_top(cursor, thread_id)
         hierarchy_id = unicode(post_number) + '/'
 
-    #cursor.execute(INSERT_POST, [hierarchy_id, date, message, email, forum, thread_id, parent_id])
     cursor.execute(INSERT_POST, [hierarchy_id, date, message, email, forum, thread_id, parent_id])
     post_id = cursor.lastrowid
 
