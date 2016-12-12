@@ -32,7 +32,6 @@ def open_thread(request):
     return JsonResponse({'code': codes.OK, 'response': thread})
 
 
-
 def create(request):
     params = loads(request.body)
     forum_name = params['forum']
@@ -91,6 +90,9 @@ def details(request):
 
     related = request.GET.getlist('related')
     for related_ in related:
+        if related_ not in ['user', 'forum']:
+            cursor.close()
+            return JsonResponse({'code': codes.INCORRECT_QUERY, 'response': 'Incorrect related parameter'})
         if related_ is 'user':
             thread['user'] = get_profile_by_email(cursor, related_ids['user'])
         if related_ is 'forum':
