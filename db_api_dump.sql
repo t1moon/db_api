@@ -29,7 +29,8 @@ CREATE TABLE `Users_Forum` (
   `forum` varchar(45) NOT NULL DEFAULT '',
   `user_name` varchar(45) DEFAULT NULL,
   `user_id` int(11) NOT NULL,
-  UNIQUE KEY `user_forum` (`user`,`forum`)
+  UNIQUE KEY `user_forum` (`user`,`forum`),
+  KEY `forum_username` (`forum`, `user_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
